@@ -145,6 +145,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BlockManager.cpp" />
+    <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="EngineCore.cpp" />
     <ClCompile Include="EngineInput.cpp" />
     <ClCompile Include="EngineFileIO.cpp" />
@@ -152,14 +154,18 @@
     <ClCompile Include="Shaders.cpp" />
     <ClCompile Include="Textures.cpp" />
     <ClCompile Include="ThirdParty\glad.c" />
+    <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="EngineCore.h" />
-    <ClInclude Include="EngineInput.h" />
-    <ClInclude Include="EngineFileIO.h" />
-    <ClInclude Include="Shaders.h" />
-    <ClInclude Include="Textures.h" />
+    <ClInclude Include="BlockManager.hpp" />
+    <ClInclude Include="Chunk.hpp" />
+    <ClInclude Include="EngineCore.hpp" />
+    <ClInclude Include="EngineInput.hpp" />
+    <ClInclude Include="EngineFileIO.hpp" />
+    <ClInclude Include="Shaders.hpp" />
+    <ClInclude Include="Textures.hpp" />
     <ClInclude Include="ThirdParty\stb_image.h" />
+    <ClInclude Include="World.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Resources\Shaders\chunk_fragment.txt" />
