@@ -1,5 +1,5 @@
-#include "EngineInput.h"
-#include "EngineCore.h"
+#include "EngineInput.hpp"
+#include "EngineCore.hpp"
 #include <vector>
 #include <unordered_map>
 #include <algorithm>

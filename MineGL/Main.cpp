@@ -1,8 +1,8 @@
-#include "EngineCore.h"
-#include "EngineFileIO.h"
-#include "Shaders.h"
-#include "Textures.h"
-#include "EngineInput.h"
+#include "EngineCore.hpp"
+#include "EngineFileIO.hpp"
+#include "Shaders.hpp"
+#include "Textures.hpp"
+#include "EngineInput.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

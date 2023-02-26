@@ -1,4 +1,4 @@
-#include "Textures.h"
+#include "Textures.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "ThirdParty/stb_image.h"

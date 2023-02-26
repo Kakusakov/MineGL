@@ -1,4 +1,4 @@
-#include "Shaders.h"
+#include "Shaders.hpp"
 
 GLuint tryCompileShader(
 	const GLchar* source,

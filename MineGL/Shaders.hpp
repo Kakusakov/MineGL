@@ -1,5 +1,5 @@
 #pragma once
-#include "EngineCore.h"
+#include "EngineCore.hpp"
 
 GLuint tryCompileShader(
 	const GLchar* source,
