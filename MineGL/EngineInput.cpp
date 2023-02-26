@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <algorithm>
 
-static std::vector<int> keysReg = {};
+static std::vector<int> keysReg = {};  // TODO: maybe use std::set instead?
 static std::unordered_map<int, bool> keysPressedNow = {};
 static std::unordered_map<int, bool> keysPressedLast = {};
 
