@@ -1,42 +1,67 @@
-#include "EngineCore.hpp"
-#include "EngineFileIO.hpp"
+#include "Window.hpp"
 #include "Shaders.hpp"
-#include "Textures.hpp"
-#include "EngineInput.hpp"
+#include "World.hpp"
+#include "Settings.hpp"
+#include "Texture.hpp"
+#include "Window.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
-
+#include <vector>
+#include <stdexcept>
+#include <fstream>
+#include <sstream>
 
 const size_t bufferSize = 1024;
-char buffer[bufferSize];
+char buffer[bufferSize];  // this is not thread-safe
 
-bool tryLoadResources(
+bool tryLoadShaderFromFolder(
 	GLuint& vertexShader,
 	GLuint& fragmentShader,
-	GLuint& atlas
+	const std::string& folderPath
 ) {
 	std::string temp;
-	if (!tryLoadTextFile("Resources\\Shaders\\chunk_vertex.txt", temp)) {
-		std::cout << "Failed to load vertex shader, error: " << buffer << '\n';
+	std::string traceback = "from folder \"" + folderPath + '\"';
+	std::ifstream f(rootDirName + folderPath + "\\vertex.txt");
+	if (f.fail()) {
+		std::cout << "Failed to load vertex shader " + traceback + ".\n";
 		return false;
 	}
+
+	std::stringstream ss;
+	ss << f.rdbuf();
+	temp = ss.str();
 	vertexShader = tryCompileShader(temp.c_str(), GL_VERTEX_SHADER, bufferSize, buffer);
-	if (!tryLoadTextFile("Resources\\Shaders\\chunk_fragment.txt", temp)) {
-		std::cout << "Failed to load fragment shader, error: " << buffer << '\n';
+	if (!vertexShader) {
+		std::cout << "Failed to compile vertex shader " + traceback + ", error: " 
+			<< buffer << "\n";
 		return false;
 	}
+
+	std::ifstream f2(rootDirName + folderPath + "\\fragment.txt");
+	if (f.fail()) {
+		std::cout << "Failed to load fragment shader " + traceback + "\n";
+		return false;
+	}
+
+	std::stringstream ss2;
+	ss2 << f2.rdbuf();
+	temp = ss2.str();
 	fragmentShader = tryCompileShader(temp.c_str(), GL_FRAGMENT_SHADER, bufferSize, buffer);
-	atlas = tryLoadTexture("Resources\\atlas.jpg", GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
-	return vertexShader && fragmentShader && atlas;
+	if (!fragmentShader) {
+		std::cout << "Failed to compile fragment shader " + traceback + ", error: "
+			<< buffer << "\n";
+		return false;
+	}
+	return true;
 }
 
 bool tryCreateShaderProgram(
 	GLuint& shaderProg,
-	GLuint vertexShader, 
+	GLuint vertexShader,
 	GLuint fragmentShader
 ) {
 	shaderProg = glCreateProgram();
@@ -49,153 +74,205 @@ bool tryCreateShaderProgram(
 	return true;
 }
 
-bool trySetupResources(GLuint& shaderProg, GLuint& atlas) {
+bool tryLoadResources(
+	GLuint& chunkShaderProg,
+	GLuint& voxelMeshShaderProg,
+	GLuint& atlas
+) {
+	std::string temp;
 	GLuint vsh, fsh;
-	if (!tryLoadResources(vsh, fsh, atlas)) {
-		std::cout << "Failed to load resources.\n";
+	if (!tryLoadShaderFromFolder(vsh, fsh, "Resources\\Shaders\\chunk")) {
+		std::cout << "Failed to load chunk shdaer prog.\n";
 		return false;
 	}
-	if (!tryCreateShaderProgram(shaderProg, vsh, fsh)) {
-		std::cout << "Failed to create shader program.\n";
+	if (!tryCreateShaderProgram(chunkShaderProg, vsh, fsh)) {
+		std::cout << "Failed to create chunk shader prog.\n";
 		return false;
 	}
-	glDeleteShader(vsh);
-	glDeleteShader(fsh);
+	if (!tryLoadShaderFromFolder(vsh, fsh, "Resources\\Shaders\\voxel_mesh")) {
+		std::cout << "Failed to load voxel mesh shdaer prog.\n";
+		return false;
+	}
+	if (!tryCreateShaderProgram(voxelMeshShaderProg, vsh, fsh)) {
+		std::cout << "Failed to create voxel mesh shader prog.\n";
+		return false;
+	}
+	atlas = tryLoadTexture("Resources\\Textures\\atlas_v1.png", GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+	if (!atlas) {
+		std::cout << "Failed to load texture atlas.\n";
+		return false;
+	}
 	return true;
 }
 
-void generateBufferObjects(GLuint& VAO, int atalsX, int atalsY) {
-	GLfloat maxX = 1.0f / 16 * (atalsX + 1);
-	GLfloat maxY = 1.0f / 16 * ((15 - atalsY) + 1);
-	GLfloat minX = 1.0f / 16 * atalsX;
-	GLfloat minY = 1.0f / 16 * (15 - atalsY);
+void setupMainWindow() {
+	Glfw::initialize();
 
-	GLfloat vertices[] = {
-		// positions         // texture coords
-		 0.5f,  0.5f, 0.0f,   maxX, maxY,   // top right
-		 0.5f, -0.5f, 0.0f,   maxX, minY,   // bottom right
-		-0.5f, -0.5f, 0.0f,   minX, minY,   // bottom left
-		-0.5f,  0.5f, 0.0f,   minX, maxY    // top left 
-	};
-	GLint indices[] = {
-		0, 1, 3,   // first triangle
-		1, 2, 3    // second triangle
-	};
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
+	mainWindow.reset(new Window(800, 600));
 
-	GLuint VBO;
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	mainWindow->registerKey(GLFW_KEY_W);
+	mainWindow->registerKey(GLFW_KEY_A);
+	mainWindow->registerKey(GLFW_KEY_S);
+	mainWindow->registerKey(GLFW_KEY_D);
 
-	GLuint EBO;
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	mainWindow->registerKey(GLFW_KEY_SPACE);
+	mainWindow->registerKey(GLFW_KEY_LEFT_SHIFT);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
+	mainWindow->registerMouseButton(GLFW_MOUSE_BUTTON_LEFT);
+	mainWindow->registerMouseButton(GLFW_MOUSE_BUTTON_RIGHT);
 
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
+	mainWindow->setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	mainWindow->makeContextCurrent();
 }
 
-void generateMatrices(
-	glm::mat4& model, 
-	glm::mat4& view, 
-	glm::mat4& projection,
-	const glm::vec3& cameraPos,
-	const glm::vec3& cameraDir
-) {
-	model = glm::mat4(1.0f);
-	//model = glm::rotate(model, modelAngle, glm::vec3(0.0f, 1.0f, 0.0f));
-	view = glm::lookAt(cameraPos, cameraPos + cameraDir, glm::vec3(0.0f, 1.0f, 0.0f));
-	projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+TextureManager generateTextureManager(glm::vec<2, size_t> atlasSize, GLuint atlas) {
+	TextureManager textureManager;
+	textureManager.atlasSize = atlasSize;
+	textureManager.atlasTexture = atlas;
+	return textureManager;
 }
 
-void setUniformMatrices(
-	GLuint shaderProgram,
-	const glm::mat4& model,
-	const glm::mat4& view,
-	const glm::mat4& projection
-) {
-	GLint location = glGetUniformLocation(shaderProgram, "model");
-	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(model));
-	location = glGetUniformLocation(shaderProgram, "view");
-	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(view));
-	location = glGetUniformLocation(shaderProgram, "projection");
-	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(projection));
+BlockManager generateBlockManager(const TextureManager& textureManager) {
+	BlockManager bm = { std::vector<BlockData>(BlockType::BlocksTypesCount) };
+	glm::vec2 er = textureManager.getUVs({ 12, 8 });
+	glm::vec2 bd = textureManager.getUVs({ 1, 1 });
+	glm::vec2 st = textureManager.getUVs({ 0, 3 });
+	glm::vec2 dt = textureManager.getUVs({ 0, 2 });
+	glm::vec2 gs = textureManager.getUVs({ 0, 1 });
+	glm::vec2 gt = textureManager.getUVs({ 0, 0 });
+	bm.blocks[BlockType::Air].tex = { true, { er, er, er, er, er, er } };
+	bm.blocks[BlockType::Bedrock].tex = { false, { bd, bd, bd, bd, bd, bd } };
+	bm.blocks[BlockType::Stone].tex = { false, { st, st, st, st, st, st } };
+	bm.blocks[BlockType::Dirt].tex = { false, { dt, dt, dt, dt, dt, dt } };
+	bm.blocks[BlockType::Grass].tex = { false, { gt, dt, gs, gs, gs, gs } };
+
+	bm.blocks[BlockType::Air].phy = { false };
+	bm.blocks[BlockType::Bedrock].phy = { true };
+	bm.blocks[BlockType::Stone].phy = { true };
+	bm.blocks[BlockType::Dirt].phy = { true };
+	bm.blocks[BlockType::Grass].phy = { true };
+	return bm;
 }
 
-void registerInputKeys() {
-	registerKey(GLFW_KEY_W);
-	registerKey(GLFW_KEY_A);
-	registerKey(GLFW_KEY_S);
-	registerKey(GLFW_KEY_D);
+/*#include <glm/gtc/noise.hpp>
+#include "Perlin.hpp"
+#include <chrono>
 
-	registerKey(GLFW_KEY_SPACE);
-	registerKey(GLFW_KEY_LEFT_SHIFT);
+void benchmarkNoise(size_t seed, size_t testSize) {
+	std::cout << "seed=" << seed << '\n';
+	std::cout << "testSize=" << testSize << '\n';
+
+	std::cout << "testing custom perlin generator" << std::endl;
+	std::cout << "Seting up perlin generator..." << std::endl;
+	std::chrono::steady_clock::time_point start, end;
+	start = std::chrono::steady_clock::now();
+	Perlin perlin(seed);
+	end = std::chrono::steady_clock::now();
+	std::cout << "generator setup took"
+		<< std::chrono::duration_cast<std::chrono::nanoseconds>(start - end).count()
+		<< "ns" << std::endl;
+	start = std::chrono::steady_clock::now();
+	for (size_t i = 0; i < testSize; i++) {
+		perlin.perlin3(i * 0.35236236f, i * 213.12312541351f, i * 93.12335473f);
+	}
+	end = std::chrono::steady_clock::now();
+	std::cout << "test took"
+		<< std::chrono::duration_cast<std::chrono::nanoseconds>(start - end).count()
+		<< "ns" << std::endl;
+
+	std::cout << "testing glm perlin generator..." << std::endl;
+	glm::vec3 v;
+	start = std::chrono::steady_clock::now();
+	for (size_t i = 0; i < testSize; i++) {
+		v.x = i * 0.35236236f;
+		v.y = i * 213.12312541351f;
+		v.z = i * 93.12335473f;
+		glm::perlin(v);
+	}
+	end = std::chrono::steady_clock::now();
+	std::cout << "test took"
+		<< std::chrono::duration_cast<std::chrono::nanoseconds>(start - end).count()
+		<< "ns" << std::endl;
+}*/
+
+void errorCallback(int errorCode, const char* description) {
+	std::cerr << "\n[GLFW ERROR] code="
+		<< errorCode
+		<< " description: "
+		<< description
+		<< "\n";
 }
 
 int main() {
-	if (!trySetupEngine()) {
-		std::cout << "Engine setup failed.\n";
+	glfwSetErrorCallback(errorCallback);
+	try {
+		setupMainWindow();
+	}
+	catch (std::runtime_error e) {
+		std::cerr << "Faied to create window: " << e.what() << '\n';
 		return -1;
 	}
-	if (!tryMakeWindow(800, 600)) {
-		std::cout << "Failed to create a window.\n";
-		return -1;
-	}
-	GLuint prog, atlas;
-	if (!trySetupResources(prog, atlas)) {
+
+	GLuint chunkProg, voxelMeshProg, atlas;
+	if (!tryLoadResources(chunkProg, voxelMeshProg, atlas)) {
 		std::cout << "Failed to setup resources.\n";
 		return -1;
 	}
-	registerInputKeys();
-	GLuint VAO;
-	generateBufferObjects(VAO, 3, 0);
-	glm::mat4 model, view, projection;
-	auto cameraPos = glm::vec3(0.0f);
-	auto cameraDir = glm::vec3(0.0f, 0.0f, 1.0f);
-	const float cameraSpeed = 5.0f;
-	const float mouseSpeed = 0.05f;
-	float yaw = -90.0f;
-	float pitch = 0.0f;
-
-	glfwSetInputMode(getTargetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glUseProgram(prog);
+	glUseProgram(chunkProg);
 	glBindTexture(GL_TEXTURE_2D, atlas);
-	glBindVertexArray(VAO);
-	glClearColor(0.2f, 0.4f, 0.4f, 1.0f);
-	GLFWwindow* target = getTargetWindow();
-	while (!glfwWindowShouldClose(target)) {
-		glClear(GL_COLOR_BUFFER_BIT);
-		cameraDir.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-		cameraDir.y = sin(glm::radians(pitch));
-		cameraDir.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-		generateMatrices(model, view, projection, cameraPos, cameraDir);
-		setUniformMatrices(prog, model, view, projection);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glfwSwapBuffers(target);
-		updateInput();
-		glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-		glm::vec3 cameraForawrd = glm::normalize(glm::vec3(cameraDir.x, 0.0f, cameraDir.z));
-		glm::vec3 cameraRight = glm::normalize(glm::cross(cameraDir, cameraUp));
-		if (getKey(GLFW_KEY_W)) cameraPos += cameraForawrd * cameraSpeed * getDeltaTime();
-		if (getKey(GLFW_KEY_S)) cameraPos -= cameraForawrd * cameraSpeed * getDeltaTime();
-		if (getKey(GLFW_KEY_D)) cameraPos += cameraRight * cameraSpeed * getDeltaTime();
-		if (getKey(GLFW_KEY_A)) cameraPos -= cameraRight * cameraSpeed * getDeltaTime();
-		if (getKey(GLFW_KEY_SPACE)) cameraPos += cameraUp * cameraSpeed * getDeltaTime();
-		if (getKey(GLFW_KEY_LEFT_SHIFT)) cameraPos -= cameraUp * cameraSpeed * getDeltaTime();
-		yaw = glm::mod(yaw + getMouseDeltaX() * mouseSpeed, 360.0f);
-		pitch = glm::clamp(pitch - getMouseDeltaY() * mouseSpeed, -89.0f, 89.0f);
+	glClearColor(
+		globalSettings.skyColor.x,
+		globalSettings.skyColor.y,
+		globalSettings.skyColor.z,
+		globalSettings.skyColor.w
+	);
+	glEnable(GL_DEPTH_TEST);
+	//TerrainGenerator tg = { { {(unsigned)time(nullptr)}, 1, 0.01, 60.0f, 0.0f, 0.0f }, 4 };
+	//TerrainGenerator tg = { { {(unsigned)time(nullptr)}, 1, 0.1, 6.0f, 0.0f, 0.0f }, 4 };
+	TerrainGenerator tg = { { {(unsigned)time(nullptr)}, 3, 0.01f, 60.0f, 10.0f, 0.1f }, 4 };
+	TextureManager tm = generateTextureManager({ 16, 16 }, atlas);
+	BlockManager bm = generateBlockManager(tm);
+	std::string worldName = "Seeded" 
+		+ std::to_string(tg.noiseGenerator.noiseGenerator.getSeed());
+	std::unique_ptr<World> w;
+	try {
+		w = std::make_unique<World>(bm, tm, tg, worldName);
 	}
+	catch (std::exception e) {  // should probaly catch something more specific
+		std::cerr << "Failed to create world: " << e.what() << '\n';
+		return -1;
+	}
+	w->teleportPlayer({ 0, 90, 0 });
+	std::vector<double> frameTimes = {};
+	while (!mainWindow->shouldClose()) {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		w->update(chunkProg, voxelMeshProg);
+		mainWindow->update();
+
+		for (int i = (int)frameTimes.size() - 1; i >= 0; i--) {
+			if (mainWindow->getTime() - frameTimes[i] > 1.0) {
+				frameTimes.erase(frameTimes.cbegin() + i);
+			}
+		}
+		frameTimes.push_back(mainWindow->getTime());
+
+		glm::ivec3 wpBlock = w->rayCast(
+			w->getPlayer().camera.pos,
+			glm::normalize(w->getPlayer().camera.getDir()),
+			(float)globalSettings.getChunkRenderDistance() * Chunk::Width * 2
+		).worldPos;
+
+		std::cout << std::string(64, ' ') << '\r';
+		std::cout << "look=["
+			<< wpBlock.x << ", " 
+			<< wpBlock.y << ", " 
+			<< wpBlock.z << "]"
+			<< "   "
+			<< "fps=" << frameTimes.size()
+			<< '\r' << std::flush;
+	}
+	mainWindow.release();  // avoid outliving the glfw library
 
 	return 0;
 }

@@ -1,8 +1,10 @@
 #pragma once
-#include "EngineCore.hpp"
+#include "Glfw.hpp"
+
+#include <string>
 
 GLuint tryLoadTexture(
-	const char* path,
+	std::string path,
 	GLint internalFormat,
 	GLenum format,
 	GLenum type

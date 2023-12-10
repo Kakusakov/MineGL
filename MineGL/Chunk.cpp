@@ -1,27 +1,25 @@
-//#include "Chunk.hpp"
-//#include <vector>
-//#include <utility>
-//
-//void MakeCube(
-//	std::vector<std::pair<glm::ivec3, glm::vec2>>& verts,
-//	std::vector<GLint>& indices,
-//	const glm::ivec3& pos,
-//	int block
-//) {
-//
-//}
-//
-//void Chunk::RebuildVAO() {
-//	GLuint VAO;
-//	std::vector<std::pair<glm::ivec3, glm::vec2>> verts = {};
-//	std::vector<GLint> indices = {};
-//	auto pos = glm::ivec3(0);
-//	int i = 0;
-//	for (pos.y = 0; pos.y < chunkHeight; pos.y++) {
-//		for (pos.x = 0; pos.x < chunkWidth; pos.x++) {
-//			for (pos.z = 0; pos.z < chunkWidth; pos.z++, i++) {
-//
-//			}
-//		}
-//	}
-//}
+#include "Chunk.hpp"
+
+std::vector<unsigned char> compressChunk(const Chunk& chunk) {
+	std::vector<unsigned char> data;
+	for (const unsigned char& byte : chunk.blocksCache) {
+		data.push_back(byte);
+	}
+	/*for (const unsigned char& byte : chunk.heightmapCache) {
+		data.push_back(byte);
+	}*/
+	return data;
+}
+bool tryDecompressChunk(const std::vector<unsigned char>& data, Chunk& chunk) {
+	const size_t chunkBlockCount = Chunk::Width * Chunk::Width * Chunk::Height;
+	if (data.size() != chunkBlockCount) return false;
+	chunk = Chunk();
+	chunk.blocksCache = std::vector<unsigned char>(chunkBlockCount);
+	for (size_t i = 0; i < chunkBlockCount; i++) {
+		chunk.blocksCache[i] = data[i];
+	}
+	/*for (size_t i = 0; i < ((size_t)Chunk::Width * Chunk::Width); i++) {
+		chunk.heightmapCache[i] = data[chunkBlockCount + i];
+	}*/
+	return true;
+}

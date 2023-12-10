@@ -17,17 +17,23 @@
       <UniqueIdentifier>{eb11b0f5-fd09-44ee-9123-5efde19178b8}</UniqueIdentifier>
     </Filter>
     <Filter Include="Файлы ресурсов\Shaders">
-      <UniqueIdentifier>{57a0bc70-922d-43e5-bdda-00b37bd85932}</UniqueIdentifier>
+      <UniqueIdentifier>{c181bdbe-d7ec-4c4a-b9bb-f536516efde9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Shaders\chunk">
+      <UniqueIdentifier>{fc4e2b6b-e846-43a8-b4dc-bbbf8a3d512b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Shaders\voxel">
+      <UniqueIdentifier>{efd156e1-1a58-4409-a9c0-a5dc055d7f8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Textures">
+      <UniqueIdentifier>{be8c4788-d28c-4515-aede-b05c3921faf5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="EngineCore.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Textures.cpp">
+    <ClCompile Include="Glfw.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="ThirdParty\glad.c">
@@ -36,27 +42,36 @@
     <ClCompile Include="Shaders.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="EngineFileIO.cpp">
+    <ClCompile Include="World.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="EngineInput.cpp">
+    <ClCompile Include="TerrainGenerator.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Settings.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="VoxelMesh.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Directions.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="Chunk.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="BlockManager.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="World.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="EngineCore.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Textures.hpp">
+    <ClInclude Include="Glfw.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="ThirdParty\stb_image.h">
@@ -65,33 +80,63 @@
     <ClInclude Include="Shaders.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="EngineFileIO.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="EngineInput.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Chunk.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="BlockManager.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="World.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="Perlin.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureManager.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainGenerator.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Settings.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="VoxelMesh.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Directions.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Chunk.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Resources\Shaders\chunk_fragment.txt">
-      <Filter>Файлы ресурсов\Shaders</Filter>
+    <Text Include=".minegl\Resources\Shaders\chunk\fragment.txt">
+      <Filter>Файлы ресурсов\Shaders\chunk</Filter>
     </Text>
-    <Text Include="Resources\Shaders\chunk_vertex.txt">
-      <Filter>Файлы ресурсов\Shaders</Filter>
+    <Text Include=".minegl\Resources\Shaders\chunk\vertex.txt">
+      <Filter>Файлы ресурсов\Shaders\chunk</Filter>
+    </Text>
+    <Text Include=".minegl\Resources\Shaders\voxel_mesh\fragment.txt">
+      <Filter>Файлы ресурсов\Shaders\voxel</Filter>
+    </Text>
+    <Text Include=".minegl\Resources\Shaders\voxel_mesh\vertex.txt">
+      <Filter>Файлы ресурсов\Shaders\voxel</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Resources\atlas.jpg">
-      <Filter>Файлы ресурсов</Filter>
+    <Image Include=".minegl\Resources\Textures\atlas_v1.png">
+      <Filter>Файлы ресурсов\Textures</Filter>
     </Image>
   </ItemGroup>
 </Project>

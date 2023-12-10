@@ -1,0 +1,14 @@
+// VOXEL MESH
+
+#version 330 core
+
+in vec2 TexCoord;
+
+uniform sampler2D atlas;
+uniform vec4 colorTint;
+
+void main()
+{
+    //gl_FragColor = texture(atlas, TexCoord) * colorTint;
+    gl_FragColor = colorTint;
+}

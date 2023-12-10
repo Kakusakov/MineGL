@@ -1,7 +1,25 @@
-#include "EngineCore.hpp"
+#include "Glfw.hpp"
 
-#include <cstdlib>
+#include <stdexcept>
 #include <iostream>
+
+const std::string rootDirName = ".minegl\\";
+const std::string resourceDirName = "Resouces\\";
+
+// @throws std::runtime_error
+Glfw::Glfw() {
+	if (!glfwInit()) throw std::runtime_error("Unable to initialize glfw");
+}
+Glfw::~Glfw() {
+	glfwMakeContextCurrent(nullptr);
+	glfwTerminate();
+}
+// @throws std::runtime_error
+void Glfw::initialize() {
+	static Glfw glfw;
+}
+
+/*#include <cstdlib>
 
 static bool isEngineReady = false;
 
@@ -10,17 +28,8 @@ bool isEngineActive() {
 }
 
 void terminateEngine() {
-	// TODO: guarantee all threads don't have any active OGL contexts
 	glfwMakeContextCurrent(NULL);
 	glfwTerminate();
-}
-
-void errorCallback(int errorCode, const char* description) {
-	std::cerr << "\n[GLFW ERROR] code="
-		<< errorCode
-		<< " description: "
-		<< description
-		<< "\n";
 }
 
 bool trySetupEngine() { 
@@ -62,4 +71,4 @@ bool tryMakeWindow(int width, int height) {
 	glViewport(0, 0, width, height);
 	glfwSetFramebufferSizeCallback(targetWindow, framebufferSizeCallback);
 	return true;
-}
+}*/

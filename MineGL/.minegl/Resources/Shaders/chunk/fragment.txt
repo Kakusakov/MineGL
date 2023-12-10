@@ -1,0 +1,25 @@
+// CHUNK
+
+#version 330 core
+  
+in vec2 TexCoord;
+
+uniform sampler2D atlas;
+uniform int chunkRenderDistance;
+uniform vec4 fogColor;
+
+int viewDistanceReduction = max(chunkRenderDistance / 8, 1);
+float fogLength = viewDistanceReduction * 8;
+float fogDistance = max(chunkRenderDistance - viewDistanceReduction, 0) * 8;
+in float camDistance;
+
+
+float getFogValue(float dist) 
+{
+    return clamp(dist - fogDistance, 0, fogLength) / fogLength;
+}
+
+void main()
+{
+    gl_FragColor = mix(texture(atlas, TexCoord), fogColor, getFogValue(camDistance));
+}

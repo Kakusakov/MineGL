@@ -1,36 +1,37 @@
 #pragma once
-#include "EngineCore.hpp"
+#include "Glfw.hpp"
 #include <vector>
-#include <glm/vec2.hpp>
-#include <string>
+#include <glm/glm.hpp>
 
-enum BlockSide {
-	BlockTop,
-	BlockBottom,
-	BlockFront,
-	BlockBack,
-	BlockRight,
-	BlockLeft
+enum BlockType {
+	blockNotReady = -1,
+	Air,
+	Bedrock,
+	Stone,
+	Dirt,
+	Grass,
+	BlocksTypesCount
+};
+
+// TODO: assign as a member of BlockData...
+struct TextureBlockData {
+public:
+	bool isTransparent = false;
+	glm::vec2 sideUVs[6] = {};
+};
+
+// TODO: assign as a member of BlockData...
+struct PhysicsBlockData {
+	bool isSolid = true;
 };
 
 struct BlockData {
-public:
-	glm::ivec2 sideUVs[6];
+	TextureBlockData tex;
+	PhysicsBlockData phy;
 };
 
-class BlockManager
-{
-private:
-	std::vector<BlockData> loadedBlocks = {};
+class BlockManager {
 public:
-	inline size_t getBlocksCount() const { 
-		return loadedBlocks.size(); 
-	}
-	inline const BlockData& getBlock(size_t id) const { 
-		return loadedBlocks[id]; 
-	}
-	inline void LoadBlock(const BlockData& blockData) { 
-		loadedBlocks.push_back(blockData); 
-	}
+	// TODO: this should be static and const
+	std::vector<BlockData> blocks = {};
 };
-
